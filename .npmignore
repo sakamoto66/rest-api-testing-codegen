@@ -1,0 +1,6 @@
+*.log
+.cache
+__tests__
+coverage/
+tmp/
+node_modules/
