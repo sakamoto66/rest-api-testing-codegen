@@ -9,7 +9,7 @@ const commandLineArgs = require('command-line-args');
 
 const defaultConfig:any = {
     format:'playwright',
-    space:'  ',
+    indent:'  ',
     output:'sample.spec.ts',
     headers:['authorization']
 };
