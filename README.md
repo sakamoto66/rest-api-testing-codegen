@@ -12,8 +12,22 @@ npm install -D rest-api-testing-codegen
 
 ## Usage
 
+1. generate test code
+
 ```bash
 npx rest-api-testing-codegen --baseURL=https://google.co.jp --headers=cookie
+```
+
+2. install `@playwright/test` for test code
+
+```bash
+npm i -D @playwright/test
+```
+
+3. run test code
+
+```bash
+npx playwright test sample.spec.ts
 ```
 
 ## Options
@@ -27,3 +41,16 @@ npx rest-api-testing-codegen --baseURL=https://google.co.jp --headers=cookie
 | headers | h | Y | Y | Prints the code only if the specified header is present. | authorization |
 | expect | | N | Y | Specify the verification format of the response data. | |
 | config | c | Y | N | Specify the configuration file. | rest-api-testing-codegen.config.js |
+
+## Setting Config
+
+- rest-api-testing-codegen.config.js
+
+```javascript
+const config = {
+    baseURL:"https://google.co.jp/",
+    output:"hoge.spec.ts",
+    headers:["cookie"]
+};
+module.exports = config;
+```
