@@ -29,7 +29,7 @@ export class ConfigLoader {
     }
     
     loadConfigFromDirectory(directory: string) {
-        const configNames = [tsConfig, jsConfig];
+        const configNames = [jsConfig];
         for (const configName of configNames) {
             if (this.loadConfig(path.resolve(directory, configName)))
             return true;
@@ -37,7 +37,7 @@ export class ConfigLoader {
         return false;
     }
     
-    loadConfigFile(file: string): Config {
+    private loadConfigFile(file: string): Config {
         let config = require(file);
         if (config && typeof config === 'object' && ('default' in config))
             config = config['default'];

@@ -3,8 +3,8 @@ export type RestApiTestingCodegenConfig = Config;
 export interface Config {
     baseURL?:string
     output?:string
-    target?:string
-    space?:string
+    format?:string
+    indent?:string
     expect?:any
     headers?:string[]
 }

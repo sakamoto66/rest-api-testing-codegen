@@ -21,7 +21,7 @@ export class PlaywrightApiTestGenerator implements Generator {
     start(config:RestApiTestingCodegenConfig) {
         this.config = config;
         const output = config.output ? config.output : 'sample.spec.ts';
-        this.#gen.open(output, config.space);
+        this.#gen.open(output, config.indent);
         if(config.headers) {
             this.keepheaders = config.headers;
         }
@@ -50,7 +50,7 @@ export class PlaywrightApiTestGenerator implements Generator {
         const config:RestApiTestingCodegenConfig = this.config;
         const hdrs:any = {};
         (await response.request().headersArray()).filter(e => this.keepheaders.includes(e.name)).forEach(e => hdrs[e.name] = e.value);
-        const hdrs_str = JSON.stringify(hdrs, null, config.space);
+        const hdrs_str = JSON.stringify(hdrs, null, config.indent);
         if('{}' == hdrs_str) return;
 
         const hdrs_key = 'hdr_'+md5hex(hdrs_str);
@@ -75,7 +75,7 @@ export class PlaywrightApiTestGenerator implements Generator {
             if(postData) {
                 try {
                     const json = response.request().postDataJSON();
-                    this.#gen.push(`data:${JSON.stringify(json, null, config.space)}`);
+                    this.#gen.push(`data:${JSON.stringify(json, null, config.indent)}`);
                 } catch(e) {
                     this.#gen.push(`data:${postData}`);
                 }
@@ -93,14 +93,14 @@ export class PlaywrightApiTestGenerator implements Generator {
         try {
             const json = await response.json();
             if(Array.isArray(json)) {
-                const json_str = this.expectPattern.stringify(json[0], config.space);
+                const json_str = this.expectPattern.stringify(json[0], config.indent);
                 this.#gen.push(`expect(await res.json()).toHaveLength(${json.length});`);
                 this.#gen.push(`expect((await res.json())[0]).toEqual(${json_str});`)
             } else if(json != null && typeof json == 'object') {
-                const json_str = this.expectPattern.stringify(json, config.space);
+                const json_str = this.expectPattern.stringify(json, config.indent);
                 this.#gen.push(`expect(await res.json()).toEqual(${json_str});`)
             } else {
-                const json_str = this.expectPattern.stringify(json, config.space);
+                const json_str = this.expectPattern.stringify(json, config.indent);
                 this.#gen.push(`expect(await res.json()).toEqual(${json_str});`)
             }
         } catch(e) {}

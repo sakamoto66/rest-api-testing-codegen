@@ -8,7 +8,7 @@ import { PlaywrightApiTestGenerator } from './generator/playwright';
 const commandLineArgs = require('command-line-args');
 
 const defaultConfig:any = {
-    target:'playwright',
+    format:'playwright',
     space:'  ',
     output:'sample.spec.ts',
     headers:['authorization']
@@ -17,14 +17,17 @@ const defaultConfig:any = {
 const optionDefinitions = [
     {
         name: 'baseURL',
+        alias: 'u',
         type: String,
     },
     {
-        name: 'space',
+        name: 'indent',
+        alias: 'i',
         type: String
     },
     {
         name: 'headers',
+        alias: 'h',
         type: String
     },
     {
@@ -33,20 +36,30 @@ const optionDefinitions = [
         type: String
     },
     {
-        name: 'target',
-        alias: 't',
+        name: 'format',
+        alias: 'f',
+        type: String
+    },
+    {
+        name: 'config',
+        alias: 'c',
         type: String
     },
 ];
 
 (async () => {
-    const loader = new ConfigLoader(defaultConfig);
-    loader.loadConfigFromDirectory(process.cwd());
-
     const cmdopts = commandLineArgs(optionDefinitions);
     if(cmdopts.headers) {
         cmdopts.headers = cmdopts.headers.split(',');
     }
+
+    const loader = new ConfigLoader(defaultConfig);
+    if(cmdopts.config) {
+        loader.loadConfig(cmdopts.config);
+    } else {
+        loader.loadConfigFromDirectory(process.cwd());
+    }
+
     const config = Object.assign(loader.config, cmdopts);
 
     const browser = await chromium.launch({headless: false});

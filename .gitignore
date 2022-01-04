@@ -4,5 +4,4 @@ dist/
 coverage/
 tmp/
 node_modules/
-restapitesingcodegen.config.ts
-restapitesingcodegen.config.js
+rest-api-testing-codegen.config.*
