@@ -1,110 +1,114 @@
-import { Browser, BrowserContext, Page, Response, Request, request } from 'playwright';
+import { Response, Request, request } from 'playwright';
 import { CodeGenerator } from '../codegenerator';
 import { JestExpectPattern } from '../jestexpectpattern';
-
-export class PlaywrightApiTestGenerator {
+import { Generator } from './generator';
+import * as crypto  from 'crypto';
+import { RestApiTestingCodegenConfig } from '..';
+export class PlaywrightApiTestGenerator implements Generator {
     #gen:CodeGenerator;
-    #started:boolean = false;
     expectPattern:JestExpectPattern;
+    keepheaders:string[];
+    headerStore:string[];
+    config:any;
 
-    constructor(path:string) {
+    constructor() {
         this.expectPattern = new JestExpectPattern();
-        this.#started = false;
-        this.#gen = new CodeGenerator(path, '  ');
+        this.#gen = new CodeGenerator();
+        this.keepheaders = [];
+        this.headerStore = [];
+    }
+
+    start(config:RestApiTestingCodegenConfig) {
+        this.config = config;
+        const output = config.output ? config.output : 'sample.spec.ts';
+        this.#gen.open(output, config.space);
+        if(config.headers) {
+            this.keepheaders = config.headers;
+        }
+        if(config.expect) {
+            for(const key in config.expect){
+                this.expectPattern.add(key, config.expect[key]);
+            }
+        }
+
         this.#gen.push(`import { test, expect } from '@playwright/test';`);
         this.#gen.push(``);
-    }
-
-    static run(browser:Browser, context:BrowserContext, page:Page, cmdopts:any) {
-        const codegen = new PlaywrightApiTestGenerator(cmdopts.output);
-
-        context.on('response', async (response) => {
-            await codegen.onResponse(response);
-        });
-
-        page.on('close', async () => {
-            codegen.end();
-            await context.close();
-            await browser.close();
-            process.exit();
-        });
-    }
-
-    #start(headers:any) {
-        const config:any = {};
         this.#gen.push(this.expectPattern.definelines().join('\n'));
         if(config.baseURL) {
             this.#gen.push(`const baseURL = ${JSON.stringify(config.baseURL)};`);
         }
         this.#gen.push(``);
         this.#gen.up(`test('api test', async ({ request }) => {`);
-        for(const hdr in headers) {
-            if(hdr.startsWith(':')) {
-                delete headers[hdr];
-            }
-        }
-        this.#gen.push(`const headers = ${JSON.stringify(headers, null, '  ')};`);
     }
 
     end() {
-        if(!this.#started) return;
         this.#gen.down("});");
         this.#gen.close();
     }
 
-    async onResponse(response:Response) {
-        if(response.request().isNavigationRequest()) return;
-        if(!await response.request().headerValue('authorization')) return;
-        if(!this.#started) {
-            this.#started = true;
-            const headers = await response.request().allHeaders();
-            this.#start(headers);
-        }
-        await this.outputRequestTestCode(response);
-    }
+    async accept(response: Response):Promise<void> {
+        const config:RestApiTestingCodegenConfig = this.config;
+        const hdrs:any = {};
+        (await response.request().headersArray()).filter(e => this.keepheaders.includes(e.name)).forEach(e => hdrs[e.name] = e.value);
+        const hdrs_str = JSON.stringify(hdrs, null, config.space);
+        if('{}' == hdrs_str) return;
 
-    async outputRequestTestCode(responce:Response) {
-        const config:any = {};
-        const method = responce.request().method();
-        const url = responce.url();
+        const hdrs_key = 'hdr_'+md5hex(hdrs_str);
+        if(!this.headerStore.includes(hdrs_key)){
+            this.#gen.push(`const ${hdrs_key} = ${hdrs_str};`);
+            this.headerStore.push(hdrs_key);
+        }
+        const method = response.request().method();
+        const url = response.url();
         const path = url.replace(/^[a-z]+\:+\/+[^[/]+/,'');
         const requrl = config.baseURL ? url.replace(config.baseURL, '${baseURL}') : url;
-        const option = { headers:await responce.request().allHeaders() };
-        const postData = responce.request().postData();
+        const option = { headers:await response.request().allHeaders() };
+        const postData = response.request().postData();
         const title = `${method} ${path}`;
         console.log(title);
         this.#gen.up(`await test.step('${title}', async () => {`);
-        this.#gen.up(`const res = await request.${method.toLowerCase()}(\`${requrl}\`, {`);
-        this.#gen.push('headers:headers,');
-        if(postData) {
-            try {
-                const json = responce.request().postDataJSON();
-                this.#gen.push(`data:${JSON.stringify(json, null, '  ')}`);
-            } catch(e) {
-                this.#gen.push(`data:${postData}`);
+        if(hdrs_key || postData) {
+            this.#gen.up(`const res = await request.${method.toLowerCase()}(\`${requrl}\`, {`);
+            if(hdrs_key) {
+                this.#gen.push(`headers:${hdrs_key},`);
             }
+            if(postData) {
+                try {
+                    const json = response.request().postDataJSON();
+                    this.#gen.push(`data:${JSON.stringify(json, null, config.space)}`);
+                } catch(e) {
+                    this.#gen.push(`data:${postData}`);
+                }
+            }
+            this.#gen.down('});');
+        } else {
+            this.#gen.push(`const res = await request.${method.toLowerCase()}(\`${requrl}\`);`);
         }
-        this.#gen.down('});');
-        if(responce.ok()) {
+        if(response.ok()) {
             this.#gen.push(`expect(res.ok()).toBeTruthy();`);
         } else {
-            this.#gen.push(`expect(res.status()).toBe(${responce.status()});`);
+            this.#gen.push(`expect(res.status()).toBe(${response.status()});`);
         }
 
         try {
-            const json = await responce.json();
+            const json = await response.json();
             if(Array.isArray(json)) {
-                const json_str = this.expectPattern.stringify(json[0], '  ');
+                const json_str = this.expectPattern.stringify(json[0], config.space);
                 this.#gen.push(`expect(await res.json()).toHaveLenght(${json.length});`);
                 this.#gen.push(`expect((await res.json())[0]).toEqual(${json_str});`)
             } else if(json != null && typeof json == 'object') {
-                const json_str = this.expectPattern.stringify(json, '  ');
+                const json_str = this.expectPattern.stringify(json, config.space);
                 this.#gen.push(`expect(await res.json()).toEqual(${json_str});`)
             } else {
-                const json_str = this.expectPattern.stringify(json, '  ');
+                const json_str = this.expectPattern.stringify(json, config.space);
                 this.#gen.push(`expect(await res.json()).toEqual(${json_str});`)
             }
         } catch(e) {}
         this.#gen.down("});");
     }
+}
+
+function md5hex(str:string /*: string */) {
+    const md5 = crypto.createHash('md5')
+    return md5.update(str, 'binary').digest('hex')
 }

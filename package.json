@@ -1,7 +1,8 @@
 {
   "name": "rest-api-testing-codegen",
-  "version": "0.1.0",
-  "description": "",
+  "version": "0.1.1",
+  "private": false,
+  "description": "Since I operated the browser, only the API is recorded and the code is generated.",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/sakamoto66/rest-api-testing-codegen.git"
@@ -27,17 +28,18 @@
   "scripts": {
     "build": "tsc",
     "prepublishOnly": "npm run build",
-    "test": "jest"
+    "test": "jest",
+    "bin": "node dist/cli.js"
   },
   "devDependencies": {
     "@types/jest": "^27.0.3",
     "jest": "^27.4.5",
-    "playwright": "^1.17.1",
     "ts-jest": "^27.1.2",
     "ts-node": "^10.4.0",
     "typescript": "^4.5.4"
   },
   "dependencies": {
-    "command-line-args": "^5.2.0"
+    "command-line-args": "^5.2.0",
+    "playwright": "^1.17.1"
   }
 }

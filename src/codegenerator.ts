@@ -2,13 +2,16 @@ import * as fs from 'fs';
 
 export class CodeGenerator {
     #count:number = 0;
-    #stream:number;
-    #indent:string;
+    #stream:number = 0;
+    #indent:string = '';
+    
+    constructor() {
+    }
 
-    constructor(fpath:string, indent:string) {
+    open(fpath:string, indent?:string) {
         this.#count = 0;
         this.#stream = fs.openSync(fpath, "w");
-        this.#indent = indent;
+        this.#indent = indent ? indent : '';
     }
 
     up(text:string) {
