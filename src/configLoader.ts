@@ -1,20 +1,20 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { RestApiTestingCodegenConfig } from ".";
+import { Config } from "./config";
 
-const tsConfig = 'restapitesingcodegen.config.ts';
-const jsConfig = 'restapitesingcodegen.config.js';
+const tsConfig = 'rest-api-testing-codegen.config.ts';
+const jsConfig = 'rest-api-testing-codegen.config.js';
 
 export class ConfigLoader {
-    defaultConfig:RestApiTestingCodegenConfig
+    defaultConfig:Config
     loadedConfig:any
 
-    constructor(defaultConfig:RestApiTestingCodegenConfig) {
+    constructor(defaultConfig:Config) {
         this.defaultConfig = defaultConfig;
         this.loadedConfig = {};
     }
 
-    get config():RestApiTestingCodegenConfig {
+    get config():Config {
         return Object.assign(this.defaultConfig, this.loadedConfig);
     }
 
@@ -37,7 +37,7 @@ export class ConfigLoader {
         return false;
     }
     
-    loadConfigFile(file: string): RestApiTestingCodegenConfig {
+    loadConfigFile(file: string): Config {
         let config = require(file);
         if (config && typeof config === 'object' && ('default' in config))
             config = config['default'];

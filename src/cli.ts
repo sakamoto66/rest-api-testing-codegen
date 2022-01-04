@@ -1,7 +1,7 @@
 #! /usr/bin/env node
 
 import { Browser, BrowserContext, chromium, Page } from 'playwright';
-import { RestApiTestingCodegenConfig } from '.';
+import { Config } from './config';
 import { ConfigLoader } from './configLoader';
 import { Generator } from './generator/generator';
 import { PlaywrightApiTestGenerator } from './generator/playwright';
@@ -57,7 +57,7 @@ const optionDefinitions = [
     await run(config, browser, context, page, codegen);
 })();
 
-async function run(config:RestApiTestingCodegenConfig, browser:Browser, context:BrowserContext, page:Page, codegen:Generator) {
+async function run(config:Config, browser:Browser, context:BrowserContext, page:Page, codegen:Generator) {
     codegen.start(config);
 
     context.on('response', async (response) => {
