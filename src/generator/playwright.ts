@@ -94,7 +94,7 @@ export class PlaywrightApiTestGenerator implements Generator {
             const json = await response.json();
             if(Array.isArray(json)) {
                 const json_str = this.expectPattern.stringify(json[0], config.space);
-                this.#gen.push(`expect(await res.json()).toHaveLenght(${json.length});`);
+                this.#gen.push(`expect(await res.json()).toHaveLength(${json.length});`);
                 this.#gen.push(`expect((await res.json())[0]).toEqual(${json_str});`)
             } else if(json != null && typeof json == 'object') {
                 const json_str = this.expectPattern.stringify(json, config.space);
