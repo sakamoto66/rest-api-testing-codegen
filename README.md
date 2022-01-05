@@ -38,9 +38,11 @@ npx playwright test sample.spec.ts
 | indent | i | Y | Y | Indent the output code | 2 spaces |
 | output | o | Y | Y | File name of the output code | sample.spec.ts |
 | format | f | Y | Y | Format of output code | playwright |
-| headers | h | Y | Y | Prints the code only if the specified header is present. | authorization |
+| headers | h | Y | Y | Prints the code only if the specified header is present. | |
+| ignoreheaders |  | Y | Y |  | referer,content-type,content-length |
 | expect | | N | Y | Specify the verification format of the response data. | |
 | config | c | Y | N | Specify the configuration file. | rest-api-testing-codegen.config.js |
+| resourceType |  | Y | Y | all, document, stylesheet, image, media, font, script, texttrack, xhr, fetch, eventsource, websocket, manifest, other | xhr |
 
 ## Setting Config
 
