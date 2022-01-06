@@ -28,7 +28,7 @@ export class PlaywrightApiTestGenerator implements Generator {
         this.#gen.push(``);
         this.#gen.push(this.expectPattern.definelines().join('\n'));
         if(config.baseURL) {
-            this.#gen.push(`const baseURL = ${JSON.stringify(config.baseURL)};`);
+            this.#gen.push(`test.use({ baseURL: ${JSON.stringify(config.baseURL)} });`);
         }
         this.#gen.push(``);
         this.#gen.up(`test('api test', async ({ request }) => {`);
@@ -50,26 +50,28 @@ export class PlaywrightApiTestGenerator implements Generator {
         const method = response.request().method();
         const url = response.url();
         const path = url.replace(/^[a-z]+\:+\/+[^[/]+/,'');
-        const requrl = config.baseURL ? url.replace(config.baseURL, '${baseURL}') : url;
+        const requrl = config.baseURL ? url.replace(config.baseURL, '') : url;
         const title = `${method} ${path}`;
 
         console.log(title);
         this.#gen.up(`await test.step('${title}', async () => {`);
         this.#gen.up(`const res = await request.${method.toLowerCase()}(\`${requrl}\`, {`);        
+        this.#gen.push(`headers:hdr_${hdrkey},`);
 
         const postData = response.request().postData();
         if(postData) {
-            const contenttype = await response.request().headerValue('content-type') || '';
-            this.#gen.push(`headers:Object.assign(hdr_${hdrkey}, ${JSON.stringify({'content-type':contenttype})}),`);
-
             try {
-                const json = -1 < contenttype.indexOf('application/x-www-form-urlencoded') ? qs.parse(postData) : JSON.parse(postData);
-                this.#gen.push(`data:${JSON.stringify(json, null, config.indent)}`);
+                const contenttype = await response.request().headerValue('content-type') || '';
+                if( -1 < contenttype.indexOf('application/x-www-form-urlencoded') ) {
+                    const json = qs.parse(postData);
+                    this.#gen.push(`form:${JSON.stringify(json, null, config.indent)}`);
+                } else {
+                    const json = JSON.parse(postData);
+                    this.#gen.push(`data:${JSON.stringify(json, null, config.indent)}`);    
+                }
             } catch(e) {
                 this.#gen.push(`// ${e}`);
             }
-        } else {
-            this.#gen.push(`headers:hdr_${hdrkey}`);
         }
         this.#gen.down('});');
 
@@ -80,8 +82,11 @@ export class PlaywrightApiTestGenerator implements Generator {
         }
 
         const contentType = await response.headerValue('content-type') || '';
-        this.#gen.push(`expect(await res.headerValue('content-type')).toBe('${contentType}');`);
+        this.#gen.push(`expect(res.headers()['content-type']).toBe('${contentType}');`);
 
+        if(-1 < contentType.indexOf('text/')) {
+            this.#gen.push("//console.log((await res.body()).toString('utf8'));");
+        }
         if(-1 < contentType.indexOf('json')) {
             try {
                 const json = await response.json();
