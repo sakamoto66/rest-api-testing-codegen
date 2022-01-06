@@ -1,6 +1,6 @@
 {
   "name": "rest-api-testing-codegen",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "private": false,
   "description": "Since I operated the browser, only the API is recorded and the code is generated.",
   "repository": {

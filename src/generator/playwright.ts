@@ -81,29 +81,31 @@ export class PlaywrightApiTestGenerator implements Generator {
             this.#gen.push(`expect(res.status()).toBe(${response.status()});`);
         }
 
-        const contentType = await response.headerValue('content-type') || '';
-        this.#gen.push(`expect(res.headers()['content-type']).toBe('${contentType}');`);
+        const contentType = await response.headerValue('content-type');
+        if(contentType) {
+            this.#gen.push(`expect(res.headers()['content-type']).toBe('${contentType}');`);
 
-        if(-1 < contentType.indexOf('text/')) {
-            this.#gen.push("//console.log((await res.body()).toString('utf8'));");
-        }
-        if(-1 < contentType.indexOf('json')) {
-            try {
-                const json = await response.json();
-                if(Array.isArray(json)) {
-                    const json_str = this.expectPattern.stringify(json[0], config.indent);
-                    this.#gen.push(`expect(await res.json()).toHaveLength(${json.length});`);
-                    this.#gen.push(`expect((await res.json())[0]).toEqual(${json_str});`)
-                } else if(json != null && typeof json == 'object') {
-                    const json_str = this.expectPattern.stringify(json, config.indent);
-                    this.#gen.push(`expect(await res.json()).toEqual(${json_str});`)
-                } else {
-                    const json_str = this.expectPattern.stringify(json, config.indent);
-                    this.#gen.push(`expect(await res.json()).toEqual(${json_str});`)
+            if(-1 < contentType.indexOf('text/')) {
+                this.#gen.push("//console.log((await res.body()).toString('utf8'));");
+            }
+            if(-1 < contentType.indexOf('json')) {
+                try {
+                    const json = await response.json();
+                    if(Array.isArray(json)) {
+                        const json_str = this.expectPattern.stringify(json[0], config.indent);
+                        this.#gen.push(`expect(await res.json()).toHaveLength(${json.length});`);
+                        this.#gen.push(`expect((await res.json())[0]).toEqual(${json_str});`)
+                    } else if(json != null && typeof json == 'object') {
+                        const json_str = this.expectPattern.stringify(json, config.indent);
+                        this.#gen.push(`expect(await res.json()).toEqual(${json_str});`)
+                    } else {
+                        const json_str = this.expectPattern.stringify(json, config.indent);
+                        this.#gen.push(`expect(await res.json()).toEqual(${json_str});`)
+                    }
+                } catch(e) {
+                    this.#gen.push(`// ${e}`);
+                    this.#gen.push(`/* ${(await response.body()).toString('utf8')} */`);
                 }
-            } catch(e) {
-                this.#gen.push(`// ${e}`);
-                this.#gen.push(`/* ${(await response.body()).toString('utf8')} */`);
             }
         }
         this.#gen.down("});");
