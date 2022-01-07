@@ -13,6 +13,7 @@ const defaultConfig:any = {
     indent:'  ',
     output:'sample.spec.ts',
     headers:[],
+    skipheaders:false,
     ignoreheaders:['referer', 'content-type', 'content-length'],
     resourceType:['xhr']
 };
@@ -35,6 +36,10 @@ const optionDefinitions = [
     },
     {
         name: 'ignoreheaders',
+        type: String
+    },
+    {
+        name: 'skipheaders',
         type: String
     },
     {

@@ -40,6 +40,8 @@ export class PlaywrightApiTestGenerator implements Generator {
     }
 
     definedHeader(hdrkey:string, hdrs:any) {
+        const config:RestApiTestingCodegenConfig = this.config;
+        if(config.skipheaders)return;
         const hdrval = JSON.stringify(hdrs, null, this.config.indent);
         this.#gen.push(`const hdr_${hdrkey} = ${hdrval};`);
         this.#gen.push("");
@@ -55,11 +57,11 @@ export class PlaywrightApiTestGenerator implements Generator {
 
         console.log(title);
         this.#gen.up(`await test.step('${title}', async () => {`);
-        this.#gen.up(`const res = await request.${method.toLowerCase()}(\`${requrl}\`, {`);        
-        this.#gen.push(`headers:hdr_${hdrkey},`);
 
         const postData = response.request().postData();
         if(postData) {
+            this.#gen.up(`const res = await request.${method.toLowerCase()}(\`${requrl}\`, {`);        
+            if(!config.skipheaders) this.#gen.push(`headers:hdr_${hdrkey},`);
             try {
                 const contenttype = await response.request().headerValue('content-type') || '';
                 if( -1 < contenttype.indexOf('application/x-www-form-urlencoded') ) {
@@ -72,8 +74,11 @@ export class PlaywrightApiTestGenerator implements Generator {
             } catch(e) {
                 this.#gen.push(`// ${e}`);
             }
+            this.#gen.down('});');
+        } else {
+            const pms = config.skipheaders ? '' : `, {headers:hdr_${hdrkey}}`;
+            this.#gen.push(`const res = await request.${method.toLowerCase()}(\`${requrl}\`${pms});`);        
         }
-        this.#gen.down('});');
 
         if(response.ok()) {
             this.#gen.push(`expect(res.ok()).toBeTruthy();`);
