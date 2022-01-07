@@ -91,7 +91,7 @@ async function run(config:Config, browser:Browser, context:BrowserContext, page:
     const reps:Response[] = [];
     const headerStore:string[] = [];
    
-    setInterval(async () => {
+    const thead = async () => {
         while(0 < reps.length) {
             const r = reps.shift();
             if(r) {
@@ -107,7 +107,15 @@ async function run(config:Config, browser:Browser, context:BrowserContext, page:
                 await codegen.accept(r, hdrkey);
             }
         }
-    }, 100);
+        if(page.isClosed()) {
+            codegen.end();
+            await context.close();
+            await browser.close();
+            process.exit();
+        }
+        setTimeout(thead, 100);
+    }
+    thead();
 
     context.on('response', async (response:Response) => {
         if(resourceType && !resourceType.includes(response.request().resourceType())) {
@@ -117,13 +125,6 @@ async function run(config:Config, browser:Browser, context:BrowserContext, page:
             return;
         }
         reps.push(response);
-    });
-
-    page.on('close', async () => {
-        codegen.end();
-        await context.close();
-        await browser.close();
-        process.exit();
     });
 
     if(!!config.baseURL) {
