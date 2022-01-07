@@ -21,15 +21,14 @@ export class JestExpectPattern {
     stringify(json:any, space?:string) {
         space = space ? space : '';
         return json_stringify(json, space, 1, (val:any) => {
-            if(null != val && !isNaN(val) && typeof val == 'number') {
-                return `expect.any(Number) /*${val}*/`;
-            }
             for(const [key, ptn] of this.#patterns) {
                 if(ptn.test && typeof val == 'string' && ptn.test(val)) {
                     return `expect_${key} /*${val}*/`;
                 }
             }
-            return JSON.stringify(val);
+            let type:string = typeof val;
+            type = type[0].toUpperCase() + type.substring(1);
+            return `expect.any(${type}) /*${(val)}*/`;
         });
     }
 }
