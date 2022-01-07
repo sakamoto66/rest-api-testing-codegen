@@ -99,10 +99,14 @@ export class PlaywrightApiTestGenerator implements Generator {
                     if(Array.isArray(json)) {
                         const json_str = this.expectPattern.stringify(json[0], config.indent);
                         this.#gen.push(`const json = await res.json();`);
-                        this.#gen.push(`//expect(json).toHaveLength(${json.length});`);
-                        this.#gen.up(`for(const item of json) {`);
-                        this.#gen.push(`expect(item).toEqual(${json_str});`);
-                        this.#gen.down(`}`);
+                        if(0<json.length) {
+                            this.#gen.push(`//expect(json).toHaveLength(${json.length});`);
+                            this.#gen.up(`for(const item of json) {`);
+                            this.#gen.push(`expect(item).toEqual(${json_str});`);
+                            this.#gen.down(`}`);
+                        } else {
+                            this.#gen.push(`expect(json).toHaveLength(0);`);
+                        }
                     } else if(json != null && typeof json == 'object') {
                         const json_str = this.expectPattern.stringify(json, config.indent);
                         this.#gen.push(`expect(await res.json()).toEqual(${json_str});`);
