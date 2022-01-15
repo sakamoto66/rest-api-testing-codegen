@@ -10,4 +10,5 @@ export interface Config {
     ignoreheaders?:string[]
     resourceType?:string[] /* all, document, stylesheet, image, media, font, script, texttrack, xhr, fetch, eventsource, websocket, manifest, other */
     skipheaders?:boolean
+    skipexpectjson?:boolean
 }

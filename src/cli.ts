@@ -8,14 +8,15 @@ import { Generator } from './generator/generator';
 import { PlaywrightApiTestGenerator } from './generator/playwright';
 const commandLineArgs = require('command-line-args');
 
-const defaultConfig:any = {
+const defaultConfig:Config = {
     format:'playwright',
     indent:'  ',
     output:'sample.spec.ts',
     headers:[],
     skipheaders:false,
     ignoreheaders:['referer', 'content-type', 'content-length'],
-    resourceType:['xhr']
+    resourceType:['xhr'],
+    skipexpectjson:false,
 };
 
 const optionDefinitions = [
@@ -40,7 +41,7 @@ const optionDefinitions = [
     },
     {
         name: 'skipheaders',
-        type: String
+        type: Boolean
     },
     {
         name: 'resourceType',
@@ -60,6 +61,10 @@ const optionDefinitions = [
         name: 'config',
         alias: 'c',
         type: String
+    },
+    {
+        name: 'skipexpectjson',
+        type: Boolean
     },
 ];
 

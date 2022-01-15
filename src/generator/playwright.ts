@@ -96,9 +96,11 @@ export class PlaywrightApiTestGenerator implements Generator {
             if(-1 < contentType.indexOf('json')) {
                 try {
                     const json = await response.json();
-                    if(Array.isArray(json)) {
+                    this.#gen.push(`const json = await res.json();`);
+                    if(config.skipexpectjson){
+                        this.#gen.push("//console.log(json);");
+                    } else if(Array.isArray(json)) {
                         const json_str = this.expectPattern.stringify(json[0], config.indent);
-                        this.#gen.push(`const json = await res.json();`);
                         if(0<json.length) {
                             this.#gen.push(`//expect(json).toHaveLength(${json.length});`);
                             this.#gen.up(`for(const item of json) {`);
@@ -109,10 +111,10 @@ export class PlaywrightApiTestGenerator implements Generator {
                         }
                     } else if(json != null && typeof json == 'object') {
                         const json_str = this.expectPattern.stringify(json, config.indent);
-                        this.#gen.push(`expect(await res.json()).toEqual(${json_str});`);
+                        this.#gen.push(`expect(json).toEqual(${json_str});`);
                     } else {
                         const json_str = this.expectPattern.stringify(json, config.indent);
-                        this.#gen.push(`expect(await res.json()).toEqual(${json_str});`);
+                        this.#gen.push(`expect(json).toEqual(${json_str});`);
                     }
                 } catch(e) {
                     this.#gen.push(`// ${e}`);

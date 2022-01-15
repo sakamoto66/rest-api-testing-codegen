@@ -27,8 +27,14 @@ export class JestExpectPattern {
                 }
             }
             let type:string = typeof val;
-            type = type[0].toUpperCase() + type.substring(1);
-            return `expect.any(${type}) /*${(val)}*/`;
+            switch(type){
+                case 'number':
+                case 'string':
+                case 'boolean':
+                    type = type[0].toUpperCase() + type.substring(1);
+                    return `expect.any(${type}) /*${(val)}*/`;
+            }
+            return JSON.stringify(val);
         });
     }
 }
