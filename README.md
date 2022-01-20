@@ -43,8 +43,8 @@ npx playwright test sample.spec.ts
 | skipheaders |  | Y | Y | Skips the header output. | false |
 | expect | | N | Y | Specify the verification format of the response data. | |
 | config | c | Y | N | Specify the configuration file. | rest-api-testing-codegen.config.js |
-| resourceType |  | Y | Y | Specifies the resource type to validate. ex) all, document, stylesheet, image, media, font, script, texttrack, xhr, | skipexpectjson |  | Y | Y | Skips generate expect of json. | false |
-fetch, eventsource, websocket, manifest, other | xhr |
+| resourceType |  | Y | Y | Specifies the resource type to validate. ex) all, document, stylesheet, image, media, font, script, texttrack, xhr, fetch, eventsource, websocket, manifest, other | xhr |
+skipexpectjson |  | Y | Y | Skips generate expect of json. | false |
 
 ## Setting Config
 
